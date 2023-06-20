@@ -41,7 +41,7 @@ class EmployeeController extends Controller
                 ->rawColumns(['action'])
                 ->addIndexColumn()
                 ->make(true);
-                // ->toJson();
+
         }
 
         return view('employee.index');
