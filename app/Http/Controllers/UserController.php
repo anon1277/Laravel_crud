@@ -48,11 +48,13 @@ class UserController extends Controller
             'email' => 'required|email',
             'password' => 'required',
         ]);
-
+        // dd($credentials);
+        //  dd(Auth::attempt($credentials));
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            return redirect()->intended('/dashboard');
+            // return redirect()->intended('');
+            return redirect()->route('employees.index')->with('success', 'Login successful');
         }
 
         return back()->withErrors([

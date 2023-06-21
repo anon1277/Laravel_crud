@@ -6,11 +6,11 @@
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card">
-                    <h1>Admin Login</h1>
+                    <h1>Employee Login</h1>
                     <div class="card-header">{{ __('Login') }}</div>
 
                     <div class="card-body">
-                        <form method="POST" action="{{ route('admin.login') }}">
+                        <form method="POST" action="{{ route('employee.login_action') }}">
                             @csrf
 
                             <div class="form-group row">

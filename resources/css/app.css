@@ -1,0 +1,8 @@
+
+/* other CSS styles */
+
+.pagination .prev,
+.pagination .next {
+  padding-left: 10px;
+  padding-right: 10px;
+}

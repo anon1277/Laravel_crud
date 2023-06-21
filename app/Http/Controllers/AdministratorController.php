@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Administrator;
 use Illuminate\Support\Facades\Auth;
@@ -9,6 +10,10 @@ use Illuminate\Support\Facades\Hash;
 
 class AdministratorController extends Controller
 {
+
+    //
+
+
     public function view_register_page() {
         return view('administrators.register');
      }
@@ -51,18 +56,17 @@ class AdministratorController extends Controller
     //    dd(Auth::attempt($credentials));
 
 
-    if (Auth::guard('admin')->attempt($credentials)) {
+    if (Auth::guard('Administrator')->attempt($credentials)) {
+        // dd(1);
+       $ses = $request->session()->regenerate();
 
-        $ses =    $request->session()->regenerate();
-
-            return redirect()->intended('/admin/dashboard');
+        return redirect()->route('admin1.index');
         }
 
           return back()->withErrors([
               'email' => 'The provided credentials do not match our records.',
           ]);
       }
-
 
 
      //method to logout
@@ -79,6 +83,8 @@ class AdministratorController extends Controller
      */
     public function index(Request $request)
     {
+        // $employees = User::select(['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at']);
+        // dd($employees);
         if ($request->ajax()) {
             $employees = User::select(['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at']);
 
@@ -96,7 +102,7 @@ class AdministratorController extends Controller
                 // ->toJson();
         }
 
-        return view('employee.index');
+        return view('administrators.index');
     }
 
     /**

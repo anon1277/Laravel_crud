@@ -3,49 +3,105 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Employee;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
 
 class EmployeeController extends Controller
 {
-    //index method to show the employee list
+     //index method to show the employee list
 
-    protected function authenticated(Request $request, $user)
+     public function index(Request $request)
+     {
+        $employees = Employee::select(['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at']);
+
+        // dd($employees);
+         if ($request->ajax()) {
+             $employees = Employee::select(['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at']);
+
+             return DataTables::of($employees)
+                 ->addColumn('action', function ($employee) {
+                     return '
+                         <button class="btn btn-sm btn-info">View</button>
+                         <button class="btn btn-sm btn-primary edit-btn" data-id="'.$employee->id.'">Edit</button>
+                         <button class="btn btn-sm btn-danger delete-btn" data-id="'.$employee->id.'">Delete</button>
+                     ';
+                 })
+                 ->rawColumns(['action'])
+                 ->addIndexColumn()
+                 ->make(true);
+
+         }
+
+         return view('employee.index');
+     }
+
+     //method to show the register form
+    public function view_register_page() {
+        return view('employee.register');
+     }
+
+     //method to  perform the register action
+    public function register(Request $request)
     {
-        return redirect()->intended($this->intendedUrl());
+        $request->validate([
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Employee::create([
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
+        ]);
+
+        return redirect()->route('admin.login')->with('success', 'Registration successful. Please log in.');
     }
-   //method registers  action
 
-   protected function intendedUrl()
-{
-    if (session()->has('url.intended')) {
-        $url = session('url.intended');
-        session()->forget('url.intended');
-        return decrypt($url);
-    }
-}
 
-    public function index(Request $request)
-    {
-        if ($request->ajax()) {
-            $employees = User::select(['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at']);
+     //method to display a user login page
 
-            return DataTables::of($employees)
-                ->addColumn('action', function ($employee) {
-                    return '
-                        <button class="btn btn-sm btn-info">View</button>
-                        <button class="btn btn-sm btn-primary edit-btn" data-id="'.$employee->id.'">Edit</button>
-                        <button class="btn btn-sm btn-danger delete-btn" data-id="'.$employee->id.'">Delete</button>
-                    ';
-                })
-                ->rawColumns(['action'])
-                ->addIndexColumn()
-                ->make(true);
+     public function view_login_page() {
+         return view('employee.login');
+      }
 
+      //method to perform login o action
+
+      public function login(Request $request)
+      {
+          $credentials = $request->validate([
+              'email' => 'required|email',
+              'password' => 'required',
+          ]);
+
+    if (Auth::guard('employee')->attempt($credentials)) {
+
+       $ses = $request->session()->regenerate();
+        return redirect()->route('employees.index');
         }
 
-        return view('employee.index');
-    }
+          return back()->withErrors([
+              'email' => 'The provided credentials do not match our records.',
+          ]);
+      }
+
+
+     //method to logout
+     public function logout(Request $request)
+     {
+         Auth::logout();
+         $request->session()->invalidate();
+         $request->session()->regenerateToken();
+
+         return redirect('/');
+     }
+
+
 
     public function test_index(Request $request)
     {
@@ -71,6 +127,7 @@ class EmployeeController extends Controller
 
     public function store(Request $request)
     {
+
         // Validate the request data
         $validatedData = $request->validate([
             'first_name' => 'required',
@@ -79,16 +136,28 @@ class EmployeeController extends Controller
             'password' => 'required',
         ]);
 
+        // Hash the password
+        $password = Hash::make($validatedData['password']);
+
+        // Assign the authenticated administrator's ID to the employee
+        $validatedData['administrator_id'] = Auth::user()->id;
+
         // Create a new employee
-        $employee = User::create($validatedData);
+        $employee = Employee::create([
+            'first_name' => $validatedData['first_name'],
+            'last_name' => $validatedData['last_name'],
+            'email' => $validatedData['email'],
+            'password' => $password,
+            'administrator_id' => $validatedData['administrator_id'],
+        ]);
 
         // Return a response indicating success
         return response()->json(['message' => 'Employee created successfully', 'employee' => $employee]);
     }
-
+    //show the edit form
     public function show($id)
     {
-        $employee = User::find($id);
+        $employee = Employee::find($id);
         if (!$employee) {
         return response()->json(['error' => 'Employee not found.'], 404);
     }
@@ -107,7 +176,7 @@ class EmployeeController extends Controller
         ]);
 
         // Find the employee by ID
-        $employee = User::findOrFail($id);
+        $employee = Employee::findOrFail($id);
 
         // Update the employee
         $employee->update($validatedData);
@@ -119,7 +188,7 @@ class EmployeeController extends Controller
     public function destroy($id)
     {
         // Find the employee by ID
-        $employee = User::findOrFail($id);
+        $employee = Employee::findOrFail($id);
 
         // Delete the employee
         $employee->delete();

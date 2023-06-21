@@ -34,23 +34,16 @@ return [
     | Supported: "session"
     |
     */
-
     'guards' => [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
         ],
 
-        'admin' => [
-            'driver' => 'session',
-            'provider' => 'admins',
-        ],
-
         'employee' => [
             'driver' => 'session',
             'provider' => 'employees',
         ],
-
     ],
 
     /*
@@ -76,9 +69,9 @@ return [
             'model' => App\Models\User::class,
         ],
 
-        'admins' => [
+        'employees' => [
             'driver' => 'eloquent',
-            'model' => App\Models\Administrator::class,
+            'model' => App\Models\Employee::class,
         ],
 
     ],

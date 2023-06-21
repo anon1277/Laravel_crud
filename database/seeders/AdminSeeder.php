@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Administrator;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
@@ -25,6 +26,21 @@ class AdminSeeder extends Seeder
             'password' => Hash::make('Admin@crud'),
         ]);
 
-        $user->assignRole(['writer', 'admin']);
+
+
+
+        // $a_user = Administrator::create([
+        //     'first_name' => 'admin',
+        //     'last_name' => 'admin',
+        //     'email' => 'aadmin@gmail.com',
+
+        //     'password' => Hash::make('Admin@crud'),
+        // ]);
+
+
+        $user->assignRole(['admin']);
+        // $a_user->assignRole(['admin']);
     }
+
+
 }
