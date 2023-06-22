@@ -29,7 +29,6 @@ Route::group(['middleware' => "guest"], function () {
         Route::get('/', [UserController::class ,'view_login_page']);
 
 
-            // --------------------------------Routes For Admin Login And Registration For Users --------------------------------
         Route::get('employee-register', [EmployeeController::class ,'view_register_page'])->name('employee.register');
         Route::post('employee-register', [EmployeeController::class ,'register'])->name('employee.register_action');
         Route::get('employee-login', [EmployeeController::class ,'view_login_page'])->name('employee.login');
@@ -37,7 +36,7 @@ Route::group(['middleware' => "guest"], function () {
 
  });
 
-//---------------------auth middleare ----login must required to accesee these routes ---------------------------------
+//---------------------auth middleare----login must required to accesee these routes ---------------------------------
 Route::group(['middleware' => "auth"], function () {
         Route::get('/logout',[UserController::class ,'logout'])->name('logout');
 

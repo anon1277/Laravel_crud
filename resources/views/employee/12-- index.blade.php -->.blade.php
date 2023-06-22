@@ -4,18 +4,14 @@
 
 
 @section('content')
+
     <meta name="csrf-token" id="csrf-token" content="{{ csrf_token() }}">
     <div class="container">
-        <div class="col-sm-12">
-            <div class="white-box">
-                <div class="row">
-                    @include('layouts.partial.messages')
-                </div>
-            </div>
-        </div>
+
         <div class="card">
             <div class="card-header">
                 Employee List
+                <a href="{{ route('logout') }}">Logout</a>
                 <button type="button" class="btn btn-primary float-right" data-toggle="modal"
                     data-target="#employeeModal">Add Employee</button>
             </div>
@@ -33,11 +29,11 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="employeeModalLabel">Add/Edit Employee</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" required class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                 <form id="employeeForm">
+                <form id="employeeForm">
                     @csrf
                     <div class="modal-body">
                         <input type="hidden" name="id" id="employeeId">
@@ -82,11 +78,13 @@
                         <button type="submit" class="btn btn-primary" id="saveBtn">Save</button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
     </script>
@@ -107,15 +105,13 @@
     <!-- Include SweetAlert 2 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.4/dist/sweetalert2.min.js"></script>
 
-    <style>
-        label.error {
-            color: red;
-        }
 
-        input.error {
-            border-color: red;
-        }
-    </style>
+
+
+
+
+    <!-- Bootstrap library -->
+
     <script>
         $.ajaxSetup({
             headers: {
@@ -123,9 +119,11 @@
             }
         });
 
-        $(document).ready(function() {
-            var employeeForm = $('#employeeForm');
 
+
+        $(document).ready(function() {
+            // Initialize form validation
+            var employeeForm = $('#employeeForm');
             employeeForm.validate({
                 rules: {
                     first_name: {
@@ -157,11 +155,25 @@
                     password: {
                         required: 'Please enter a password',
                         minlength: 'Password must be at least 6 characters long'
-                    },
+                    }
                 },
-
+                errorElement: 'span',
+                errorPlacement: function(error, element) {
+                    error.addClass('invalid-feedback');
+                    element.closest('.form-group').append(error);
+                },
+                highlight: function(element, errorClass, validClass) {
+                    $(element).addClass('is-invalid').removeClass('is-valid');
+                },
+                unhighlight: function(element, errorClass, validClass) {
+                    $(element).removeClass('is-invalid').addClass('is-valid');
+                },
+                submitHandler: function(form) {
+                    form.submit(); // Form submission is allowed if it passes validation
+                }
             });
-              // Clear validation messages when the form is closed
+
+            // Clear validation messages when the form is closed
             var closeButton = employeeForm.find('[data-dismiss="modal"]');
             closeButton.on('click', function() {
                 employeeForm.validate().resetForm(); // Reset the validation messages
@@ -169,9 +181,12 @@
             });
         });
 
+
         $(function() {
+
             // Get the CSRF token value
             var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
             var table = $('#employees-table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -206,106 +221,112 @@
                         data: 'updated_at',
                         name: 'updated_at'
                     },
-                    {
-                        title: 'Action',
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false
-                    },
+
+                    @role('admin')
+                        {
+                            title: 'Action',
+                            data: 'action',
+                            name: 'action',
+                            orderable: false,
+                            searchable: false
+                        },
+                    @endrole
+
                 ]
             });
-            // Open the modal for adding an employee
-            // Open the modal for adding/editing an employee
-            $('#employees-table').on('click', '.edit-btn', function() {
-                var employeeId = $(this).data('id');
-                $('#employeeId').val(employeeId);
 
-                if (employeeId) {
-                    // Editing an existing employee
-                    $('#employeeModalLabel').text('Edit Employee');
-                    $('#saveBtn').text('Update');
 
-                } else {
-                    // Adding a new employee
-                    $('#employeeModalLabel').text('Add Employee');
-                    $('#saveBtn').text('Save');
+            $(document).ready(function() {
+    var csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+    // Handle form submission for adding/editing an employee
+    $(document).on('click', '.edit-btn', function() {
+        var employeeId = $(this).data('id');
+
+        // Set the employee ID in the form
+        $('#employeeId').val(employeeId);
+
+        // Update the form labels and button text
+        $('#employeeModalLabel').text('Edit Employee');
+        $('#saveBtn').text('Update');
+
+        // Perform an AJAX request to fetch the employee data
+        $.ajax({
+            url: "{{ route('employees.show', ':id') }}".replace(':id', employeeId),
+            type: 'GET',
+            success: function(response) {
+                var employee = response.employee;
+                $('#first_name').val(employee.first_name);
+                $('#last_name').val(employee.last_name);
+                $('#email').val(employee.email);
+                // Clear the password field for security reasons
+                $('#password').val('');
+            }
+        });
+
+        // Show the modal
+        $('#employeeModal').modal('show');
+    });
+
+    // Handle form submission
+    $('#employeeForm').submit(function(e) {
+        e.preventDefault();
+
+        var employeeId = $('#employeeId').val();
+        var url = '';
+        var method = '';
+
+        if (employeeId) {
+            // Editing an existing employee
+            url = "{{ route('employees.update', ':id') }}".replace(':id', employeeId);
+            method = 'PUT';
+            var successMessage = 'Employee Updated';
+        } else {
+            // Adding a new employee
+            url = "{{ route('employees.store') }}";
+            method = 'POST';
+            var successMessage = 'Employee Added';
+        }
+
+        var formData = $(this).serialize();
+        formData += '&_token=' + encodeURIComponent(csrf);
+
+        $.ajax({
+            url: url,
+            type: method,
+            data: formData,
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', csrf);
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#employeeModal').modal('hide');
+                    table.ajax.reload();
+                    alert(successMessage);
                 }
+                resetForm();
+            }
+        });
+    });
 
-                $.ajax({
-                    url: "{{ route('employees.show', ':id') }}".replace(':id', employeeId),
-                    type: 'GET',
-                    success: function(response) {
-                        var employee = response.employee;
-                        $('#first_name').val(employee.first_name);
-                        $('#last_name').val(employee.last_name);
-                        $('#email').val(employee.email);
-                        $('#password').val('');
-                    }
-                });
+    // Reset the form and clear input fields
+    function resetForm() {
+        $('#employeeId').val('');
+        $('#first_name').val('');
+        $('#last_name').val('');
+        $('#email').val('');
+        $('#password').val('');
+        $('#employeeModalLabel').text('Add Employee');
+        $('#saveBtn').text('Save');
+    }
+});
 
-                $('#employeeModal').modal('show');
-            });
 
-            var csrf = document.querySelector('meta[name="csrf-token"]').content;
 
-            // Handle form submission for adding/editing an employee
-            $('#employeeForm').submit(function(e) {
-                e.preventDefault();
 
-                var employeeId = $('#employeeId').val();
-                var url = '';
-                var method = '';
-
-                if (employeeId) {
-                    // Editing an existing employee
-                    url = "{{ route('employees.update', ':id') }}".replace(':id', employeeId);
-                    method = 'PUT';
-
-                } else {
-                    // Adding a new employee
-                    url = "{{ route('employees.store') }}";
-                    method = 'POST';
-
-                }
-
-                var formData = $(this).serialize();
-                formData += '&_token=' + encodeURIComponent(csrf);
-
-                $.ajax({
-                    url: url,
-                    type: method,
-                    data: formData,
-                    beforeSend: function(xhr) {
-                        xhr.setRequestHeader('X-CSRF-TOKEN', csrf);
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            $('#employeeModal').modal('hide');
-                            table.ajax.reload();
-
-                        }
-                        resetForm();
-                    }
-                });
-
-                // Close the form
-                $('#employeeModal').modal('hide');
-                table.ajax.reload();
-
-                // Reset the form and clear input fields
-                function resetForm() {
-                    $('#employeeId').val('');
-                    $('#first_name').val('');
-                    $('#last_name').val('');
-                    $('#email').val('');
-                    $('#password').val('');
-                    $('#employeeModalLabel').text('Add Employee');
-                    $('#saveBtn').text('Save');
-                }
-            });
 
             // Delete employee
+
             $('#employees-table').on('click', '.delete-btn', function() {
                 var employeeId = $(this).data('id');
                 Swal.fire({
@@ -337,5 +358,6 @@
                     }
                 });
             });
+
         });
     </script>

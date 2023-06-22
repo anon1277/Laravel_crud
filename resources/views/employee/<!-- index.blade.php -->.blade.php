@@ -92,12 +92,9 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-
         $(function() {
-
             // Get the CSRF token value
             var csrfToken = $('meta[name="csrf-token"]').attr('content');
-
             var table = $('#employees-table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -132,7 +129,6 @@
                         data: 'updated_at',
                         name: 'updated_at'
                     },
-
                         {
                             title: 'Action',
                             data: 'action',
@@ -140,21 +136,13 @@
                             orderable: false,
                             searchable: false
                         },
-
-
-
-
                 ]
             });
-
-
             // Open the modal for adding an employee
-
             // Open the modal for adding/editing an employee
             $('#employees-table').on('click', '.edit-btn', function() {
                 var employeeId = $(this).data('id');
                 $('#employeeId').val(employeeId);
-
                 if (employeeId) {
                     // Editing an existing employee
                     $('#employeeModalLabel').text('Edit Employee');
@@ -164,7 +152,6 @@
                     $('#employeeModalLabel').text('Add Employee');
                     $('#saveBtn').text('Save');
                 }
-
                 $.ajax({
                     url: "{{ route('employees.show', ':id') }}".replace(':id', employeeId),
                     type: 'GET',
@@ -176,43 +163,36 @@
                         $('#password').val('');
                     }
                 });
-
                 $('#employeeModal').modal('show');
             });
-
             var csrf = document.querySelector('meta[name="csrf-token"]').content;
-
             // Handle form submission for adding/editing an employee
             $('#employeeForm').submit(function(e) {
                 e.preventDefault();
-
                 var employeeId = $('#employeeId').val();
                 var url = '';
                 var method = '';
-
                 if (employeeId) {
                     // Editing an existing employee
                     url = "{{ route('employees.update', ':id') }}".replace(':id', employeeId);
                     method = 'PUT';
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Employee Updated',
-                        text: 'Data updated successfully!',
-                    });
+                    // Swal.fire({
+                    //     icon: 'success',
+                    //     title: 'Employee Updated',
+                    //     text: 'Data updated successfully!',
+                    // });
                 } else {
                     // Adding a new employee
                     url = "{{ route('employees.store') }}";
                     method = 'POST';
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Employee Added',
-                        text: 'Employee added successfully!',
-                    });
+                    // Swal.fire({
+                    //     icon: 'success',
+                    //     title: 'Employee Added',
+                    //     text: 'Employee added successfully!',
+                    // });
                 }
-
                 var formData = $(this).serialize();
                 formData += '&_token=' + encodeURIComponent(csrf);
-
                 $.ajax({
                     url: url,
                     type: method,
@@ -228,15 +208,12 @@
                         resetForm();
                     }
                 });
-
                 // Close the form
                 $('#employeeModal').modal('hide');
                 table.ajax.reload();
 
-            });
-
-                 // Reset the form and clear input fields
-                 function resetForm() {
+                  // Reset the form and clear input fields
+                  function resetForm() {
                 $('#employeeId').val('');
                 $('#first_name').val('');
                 $('#last_name').val('');
@@ -245,12 +222,9 @@
                 $('#employeeModalLabel').text('Add Employee');
                 $('#saveBtn').text('Save');
             }
-
-
-
+            });
 
             // Delete employee
-
             $('#employees-table').on('click', '.delete-btn', function() {
     var employeeId = $(this).data('id');
     Swal.fire({
@@ -281,6 +255,6 @@
         }
     });
         });
-
     });
     </script>
+ {{-- tommor --}}

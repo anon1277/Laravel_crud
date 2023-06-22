@@ -8,7 +8,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class Administrator extends Authenticatable
 {
-    use HasFactory, HasRoles;
+    use HasFactory,  HasRoles;
 
         protected $guard = 'Administrator';
 

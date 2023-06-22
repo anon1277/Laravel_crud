@@ -10,10 +10,6 @@ use Illuminate\Support\Facades\Hash;
 
 class AdministratorController extends Controller
 {
-
-    //
-
-
     public function view_register_page() {
         return view('administrators.register');
      }
@@ -91,7 +87,7 @@ class AdministratorController extends Controller
             return DataTables::of($employees)
                 ->addColumn('action', function ($employee) {
                     return '
-                        <button class="btn btn-sm btn-info">View</button>
+
                         <button class="btn btn-sm btn-primary edit-btn" data-id="'.$employee->id.'">Edit</button>
                         <button class="btn btn-sm btn-danger delete-btn" data-id="'.$employee->id.'">Delete</button>
                     ';

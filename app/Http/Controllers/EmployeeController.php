@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Employee;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
@@ -15,16 +16,18 @@ class EmployeeController extends Controller
 
      public function index(Request $request)
      {
-        $employees = Employee::select(['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at']);
-
-        // dd($employees);
          if ($request->ajax()) {
              $employees = Employee::select(['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at']);
-
              return DataTables::of($employees)
+             ->addColumn('created_at', function ($employee) {
+                return Carbon::parse($employee->created_at)->format('d-m-Y');
+            })
+            ->addColumn('updated_at', function ($employee) {
+                return Carbon::parse($employee->updated_at)->format('d-m-Y');
+            })
+
                  ->addColumn('action', function ($employee) {
                      return '
-                         <button class="btn btn-sm btn-info">View</button>
                          <button class="btn btn-sm btn-primary edit-btn" data-id="'.$employee->id.'">Edit</button>
                          <button class="btn btn-sm btn-danger delete-btn" data-id="'.$employee->id.'">Delete</button>
                      ';
@@ -32,7 +35,6 @@ class EmployeeController extends Controller
                  ->rawColumns(['action'])
                  ->addIndexColumn()
                  ->make(true);
-
          }
 
          return view('employee.index');
@@ -63,7 +65,6 @@ class EmployeeController extends Controller
         return redirect()->route('admin.login')->with('success', 'Registration successful. Please log in.');
     }
 
-
      //method to display a user login page
 
      public function view_login_page() {
@@ -90,9 +91,8 @@ class EmployeeController extends Controller
           ]);
       }
 
-
      //method to logout
-     public function logout(Request $request)
+    public function logout(Request $request)
      {
          Auth::logout();
          $request->session()->invalidate();
@@ -101,33 +101,8 @@ class EmployeeController extends Controller
          return redirect('/');
      }
 
-
-
-    public function test_index(Request $request)
-    {
-        if ($request->ajax()) {
-            $employees = User::select(['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at']);
-
-            return DataTables::of($employees)
-                ->addColumn('action', function ($employee) {
-                    return '
-                        <button class="btn btn-sm btn-info">View</button>
-                        <button class="btn btn-sm btn-primary edit-btn" data-id="'.$employee->id.'">Edit</button>
-                        <button class="btn btn-sm btn-danger delete-btn" data-id="'.$employee->id.'">Delete</button>
-                    ';
-                })
-                ->rawColumns(['action'])
-                ->addIndexColumn()
-                ->make(true);
-                // ->toJson();
-        }
-
-        return view('employee.test');
-    }
-
     public function store(Request $request)
     {
-
         // Validate the request data
         $validatedData = $request->validate([
             'first_name' => 'required',
@@ -135,7 +110,6 @@ class EmployeeController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required',
         ]);
-
         // Hash the password
         $password = Hash::make($validatedData['password']);
 
@@ -151,23 +125,23 @@ class EmployeeController extends Controller
             'administrator_id' => $validatedData['administrator_id'],
         ]);
 
+        //  dd($employee);
         // Return a response indicating success
-        return response()->json(['message' => 'Employee created successfully', 'employee' => $employee]);
+        return redirect()->route('employees.index')->with('success','Employee created successfully');
+        // return response()->json(['message' => 'Employee created successfully', 'employee' => $employee]);
     }
-    //show the edit form
+     //show the edit form
     public function show($id)
     {
         $employee = Employee::find($id);
         if (!$employee) {
         return response()->json(['error' => 'Employee not found.'], 404);
     }
-
          return response()->json(['employee' => $employee]);
     }
 
-    public function update(Request $request, $id)
-    {
-
+     public function update(Request $request, $id)
+     {
         // Validate the request data
         $validatedData = $request->validate([
             'first_name' => 'required',
@@ -185,8 +159,8 @@ class EmployeeController extends Controller
         return response()->json(['message' => 'Employee updated successfully', 'employee' => $employee]);
     }
 
-    public function destroy($id)
-    {
+     public function destroy($id)
+     {
         // Find the employee by ID
         $employee = Employee::findOrFail($id);
 
@@ -195,5 +169,5 @@ class EmployeeController extends Controller
 
         // Return a response indicating success
         return response()->json(['message' => 'Employee deleted successfully']);
-    }
+     }
 }
