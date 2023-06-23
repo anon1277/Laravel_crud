@@ -36,7 +36,7 @@ class Employee extends Authenticatable
     // Relationships
     public function administrator()
     {
-        return $this->belongsTo(Users::class);
+        return $this->belongsTo(User::class, 'administrator_id', 'id');
     }
 
       /**

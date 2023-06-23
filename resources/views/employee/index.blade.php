@@ -1,15 +1,15 @@
 <!-- index.blade.php -->
-
 @extends('layouts.layout')
-
-
+@include('layouts.styles')
 @section('content')
+
     <meta name="csrf-token" id="csrf-token" content="{{ csrf_token() }}">
     <div class="container">
         <div class="col-sm-12">
             <div class="white-box">
                 <div class="row">
                     @include('layouts.partial.messages')
+                    <!-- Include partial for displaying messages -->
                 </div>
             </div>
         </div>
@@ -37,13 +37,13 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                 <form id="employeeForm">
+                <form id="employeeForm">
                     @csrf
                     <div class="modal-body">
                         <input type="hidden" name="id" id="employeeId">
                         <div class="form-group">
                             <label for="first_name">First Name</label>
-                            <input type="text" required placeholder="Enter Your  Name"
+                            <input type="text" required placeholder="Enter Your Name"
                                 class="form-control @error('first_name') is-invalid @enderror" name="first_name"
                                 id="first_name" value="{{ old('first_name') }}">
                             @error('first_name')
@@ -61,7 +61,7 @@
                         </div>
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" required placeholder="Enter  Email Address"
+                            <input type="email" required placeholder="Enter Email Address"
                                 class="form-control @error('email') is-invalid @enderror" name="email" id="email"
                                 value="{{ old('email') }}">
                             @error('email')
@@ -79,53 +79,29 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" id="saveBtn">Save</button>
+                        <button type="submit" id="saveBtn" class="btn btn-primary">Save</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
-    </script>
-
-    <!-- Include jQuery Validation plugin -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
-
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
-
-    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
-    <!-- Include Bootstrap library -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-
-    <!-- Include SweetAlert 2 CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.4/dist/sweetalert2.min.css">
-    <!-- Include SweetAlert 2 JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.4/dist/sweetalert2.min.js"></script>
-
-    <style>
-        label.error {
-            color: red;
-        }
-
-        input.error {
-            border-color: red;
-        }
-    </style>
+    @include('layouts.scripts')
     <script>
+        // Set up CSRF token for AJAX requests
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
 
+        // Reset the form and clear input fields
+
+
         $(document).ready(function() {
             var employeeForm = $('#employeeForm');
 
+            // Validate employee form fields
             employeeForm.validate({
                 rules: {
                     first_name: {
@@ -158,27 +134,32 @@
                         required: 'Please enter a password',
                         minlength: 'Password must be at least 6 characters long'
                     },
-                },
-
+                }
             });
-              // Clear validation messages when the form is closed
+
+            // Clear validation messages and error styling when the form is closed
             var closeButton = employeeForm.find('[data-dismiss="modal"]');
-            closeButton.on('click', function() {
-                employeeForm.validate().resetForm(); // Reset the validation messages
-                employeeForm.find('.form-group').removeClass('has-error'); // Remove the error styling
+            closeButton.click(function() {
+                // employeeForm.validate().resetForm();
+                employeeForm.find('.form-group').removeClass('has-error');
+                $('#employeeModal').modal('hide');
+                employeeForm[0].reset(); // Reset form fields
             });
         });
 
+
+
         $(function() {
-            // Get the CSRF token value
             var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+            // Initialize DataTable for employee list
             var table = $('#employees-table').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: "{{ route('employees.index') }}",
                 columns: [{
                         title: 'Id',
-                        data: 'id',
+                        data: 'DT_RowIndex',
                         name: 'id'
                     },
                     {
@@ -215,7 +196,7 @@
                     },
                 ]
             });
-            // Open the modal for adding an employee
+
             // Open the modal for adding/editing an employee
             $('#employees-table').on('click', '.edit-btn', function() {
                 var employeeId = $(this).data('id');
@@ -225,13 +206,13 @@
                     // Editing an existing employee
                     $('#employeeModalLabel').text('Edit Employee');
                     $('#saveBtn').text('Update');
-
                 } else {
                     // Adding a new employee
                     $('#employeeModalLabel').text('Add Employee');
                     $('#saveBtn').text('Save');
                 }
 
+                // Fetch employee details for editing
                 $.ajax({
                     url: "{{ route('employees.show', ':id') }}".replace(':id', employeeId),
                     type: 'GET',
@@ -247,8 +228,6 @@
                 $('#employeeModal').modal('show');
             });
 
-            var csrf = document.querySelector('meta[name="csrf-token"]').content;
-
             // Handle form submission for adding/editing an employee
             $('#employeeForm').submit(function(e) {
                 e.preventDefault();
@@ -261,38 +240,56 @@
                     // Editing an existing employee
                     url = "{{ route('employees.update', ':id') }}".replace(':id', employeeId);
                     method = 'PUT';
-
                 } else {
                     // Adding a new employee
                     url = "{{ route('employees.store') }}";
                     method = 'POST';
-
                 }
 
                 var formData = $(this).serialize();
-                formData += '&_token=' + encodeURIComponent(csrf);
+                formData += '&_token=' + encodeURIComponent(csrfToken);
 
                 $.ajax({
                     url: url,
                     type: method,
                     data: formData,
                     beforeSend: function(xhr) {
-                        xhr.setRequestHeader('X-CSRF-TOKEN', csrf);
+                        xhr.setRequestHeader('X-CSRF-Token', csrfToken);
                     },
                     success: function(response) {
                         if (response.success) {
-                            $('#employeeModal').modal('hide');
-                            table.ajax.reload();
-
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: response.message,
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                            // Handle the success case, e.g., redirect or update UI
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error!',
+                                text: response.message,
+                            });
+                            // Handle the error case, e.g., display error message or take appropriate action
                         }
+                        resetForm();
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'An error occurred during the request.',
+                        });
                         resetForm();
                     }
                 });
 
+
                 // Close the form
                 $('#employeeModal').modal('hide');
-                table.ajax.reload();
-
+                // table.ajax.reload();
                 // Reset the form and clear input fields
                 function resetForm() {
                     $('#employeeId').val('');
@@ -304,6 +301,8 @@
                     $('#saveBtn').text('Save');
                 }
             });
+
+
 
             // Delete employee
             $('#employees-table').on('click', '.delete-btn', function() {
@@ -324,7 +323,7 @@
                             type: 'DELETE',
                             headers: {
                                 'X-CSRF-TOKEN': csrfToken
-                            }, // Pass the CSRF token in the request header
+                            },
                             success: function(response) {
                                 Swal.fire({
                                     icon: 'success',

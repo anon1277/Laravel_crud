@@ -9,51 +9,67 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-
-    public function view_register_page() {
+    /**
+     * Display the registration page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function view_register_page()
+    {
         return view('register');
-     }
+    }
 
-   public function register(Request $request)
-   {
-       $request->validate([
-           'first_name' => 'required|string',
-           'last_name' => 'required|string',
-           'email' => 'required|email|unique:users,email',
-           'password' => 'required|string|min:8|confirmed',
-       ]);
+    /**
+     * Handle user registration.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function register(Request $request)
+    {
+        $request->validate([
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
 
-       $user = User::create([
-           'first_name' => $request->input('first_name'),
-           'last_name' => $request->input('last_name'),
-           'email' => $request->input('email'),
-           'password' => Hash::make($request->input('password')),
-       ]);
+        $user = User::create([
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
+        ]);
 
-       return redirect()->route('login')->with('success', 'Registration successful. Please log in.');
-   }
+        return redirect()->route('login')->with('success', 'Registration successful. Please log in.');
+    }
 
-
-    //method to display a user login page
-
-    public function view_login_page() {
+    /**
+     * Display the login page.
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function view_login_page()
+    {
         return view('login');
-     }
+    }
 
-     //method login action
-
-     public function login(Request $request)
+    /**
+     * Handle user login.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function login(Request $request)
     {
         $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
-        // dd($credentials);
-        //  dd(Auth::attempt($credentials));
+
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // return redirect()->intended('');
             return redirect()->route('employees.index')->with('success', 'Login successful');
         }
 
@@ -62,10 +78,14 @@ class UserController extends Controller
         ]);
     }
 
-    //method to logout
+    /**
+     * Log out the user.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function logout(Request $request)
     {
-
         Auth::logout();
 
         $request->session()->invalidate();
@@ -73,7 +93,4 @@ class UserController extends Controller
 
         return redirect('/');
     }
-
-
-
 }

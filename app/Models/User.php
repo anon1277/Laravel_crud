@@ -43,6 +43,12 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+   // Relationships
+    public function employees()
+    {
+        return $this->hasMany(Employee::class, 'administrator_id', 'id');
+    }
+
     /**
      * The attributes that should be cast.
      *
