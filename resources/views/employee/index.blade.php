@@ -1,6 +1,10 @@
 <!-- index.blade.php -->
+
 @extends('layouts.layout')
+@include('layouts.header')
 @include('layouts.styles')
+
+
 @section('content')
 
     <meta name="csrf-token" id="csrf-token" content="{{ csrf_token() }}">

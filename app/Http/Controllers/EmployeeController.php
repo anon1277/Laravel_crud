@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Category;
 use App\Models\Employee;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Http\Response;
 
 class EmployeeController extends Controller
 {
@@ -40,8 +41,8 @@ class EmployeeController extends Controller
                 ->addIndexColumn()
                 ->make(true);
         }
-
-        return view('employee.index');
+        $categories = Category::all();
+        return view('employee.index' , compact('categories'));
     }
 
     /**

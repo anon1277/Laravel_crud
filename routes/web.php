@@ -2,7 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\SubcategoryController;
 use App\Http\Controllers\AdministratorController;
 
 /*
@@ -15,6 +17,9 @@ use App\Http\Controllers\AdministratorController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+Route::get('admin_template', function () {
+    return view('admin_template');
+});
 
 //----------------------------------guest middleware----login not required-------------------------------------------
 Route::group(['middleware' => 'guest'], function () {
@@ -46,4 +51,19 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/employees/{id}/edit', [EmployeeController::class, 'edit'])->name('employees.edit');
     Route::put('/employees/{id}', [EmployeeController::class, 'update'])->name('employees.update');
     Route::delete('/employees/{id}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
-});
+
+      //-------------------------------Category routes----------------------------------------
+      Route::get('/categories', [CategoryController::class,'index'])->name('categories.index');
+      Route::get('/categories/create', [CategoryController::class,'show_category_form'])->name('categories.create');
+
+      Route::post('/categories', [CategoryController::class,'store'])->name('categories.store');
+
+
+      //-------------------------------Subcategory routes-------------------------------------
+      Route::get('/categories/{category}/subcategories', [SubcategoryController::class,'index'])->name('subcategories.index');
+      Route::get('/categories/create-subcategories', [SubcategoryController::class,'show_sub_category_form'])->name('sub.categories.create');
+
+      Route::post('/categories/subcategories',[SubcategoryController::class,'store'])->name('subcategories.store');
+      Route::get('categories/{category}', 'CategoryController@show')->name('categories.show');
+
+    });
