@@ -67,3 +67,5 @@ Route::group(['middleware' => 'auth'], function () {
       Route::get('categories/{category}', 'CategoryController@show')->name('categories.show');
 
     });
+
+Route::view('admin-test' , 'admin');

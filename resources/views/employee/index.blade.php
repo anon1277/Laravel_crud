@@ -1,11 +1,12 @@
 <!-- index.blade.php -->
 
-@extends('layouts.layout')
+{{-- @extends('layouts.layout') --}}
 @include('layouts.header')
-@include('layouts.styles')
+{{-- @include('layouts.styles') --}}
+@extends('layouts.main')
+@section('main_section')
 
 
-@section('content')
 
     <meta name="csrf-token" id="csrf-token" content="{{ csrf_token() }}">
     <div class="container">
@@ -342,3 +343,4 @@
             });
         });
     </script>
+    @endsection
